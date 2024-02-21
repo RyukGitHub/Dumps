@@ -90,35 +90,34 @@ async def check_incoming_messages(event):
             if is_cc:
                 try:
                     # Extract Relevant Data
-            card_number = re.search(r'\d{15,16}', m)[0]
-            exp_month = re.search(r'\b\d{2}\b', m)[0]  # Assuming 2-digit month
-            exp_year = re.search(r'\b20\d{2}\b', m)[0]  # Assuming 4-digit year '20XX'
-            cvv = re.search(r'\b\d{3}\b', m)[0]  # Assuming 3-digit CVV
+                    card_number = re.search(r'\d{15,16}', m)[0]
+                    exp_month = re.search(r'\b\d{2}\b', m)[0]  # Assuming 2-digit month
+                    exp_year = re.search(r'\b20\d{2}\b', m)[0]  # Assuming 4-digit year '20XX'
+                    cvv = re.search(r'\b\d{3}\b', m)[0]  # Assuming 3-digit CVV
 
-            BIN = card_number[:6]
+                    BIN = card_number[:6]
 
-            # BIN Lookup (Using aiohttp for asynchronous requests)
-            async with aiohttp.ClientSession() as session:
-                async with session.get(f'https://bins.ws/search?bins={BIN}') as r:
-                    soup = BeautifulSoup(await r.text(), 'html.parser')
-                    k = soup.find("div", {"class": "page"})
-                    bin_info = k.get_text()[62:] if k else "BIN Info Not Found"
+                    # BIN Lookup (Using aiohttp for asynchronous requests)
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(f'https://bins.ws/search?bins={BIN}') as r:
+                            soup = bs(await r.text(), 'html.parser')
+                            k = soup.find("div", {"class": "page"})
+                            bin_info = k.get_text()[62:] if k else "BIN Info Not Found"
 
-            # Construct Custom Response
-            response = f"""
-                        RubyDumps
-                        ----------
-                        {card_number}|{exp_month}|{exp_year}|{cvv}
+                    # Construct Custom Response
+                    response = f"""
+                                RubyDumps
+                                ----------
+                                {card_number}|{exp_month}|{exp_year}|{cvv}
 
-                        {bin_info}
-                        """
+                                {bin_info}
+                                """
                     
                     await Ubot.send_message(DUMP_ID, response)
 
-        except IndexError:  # Handle the case where a pattern isn't found 
-            await Ubot.send_message(DUMP_ID, "Error: Invalid card data format")
-        except errors.FloodWaitError as e:
-            print(f'flood wait: {e.seconds}')
-            await asyncio.sleep(e.seconds)
-            await Ubot.send_message(DUMP_ID, response)  # Retry sending the response
-                    
+                except IndexError:  # Handle the case where a pattern isn't found 
+                    await Ubot.send_message(DUMP_ID, "Error: Invalid card data format")
+                except errors.FloodWaitError as e:
+                    print(f'flood wait: {e.seconds}')
+                    await asyncio.sleep(e.seconds)
+                    await Ubot.send_message(DUMP_ID, response)  # Retry sending the response
