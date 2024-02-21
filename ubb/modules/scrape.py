@@ -92,8 +92,9 @@ async def check_incoming_messages(event):
                     # Extract Relevant Data
                     card_number = re.search(r'\d{15,16}', m)[0]
                     exp_month = re.search(r'\b\d{2}\b', m)[0]  # Assuming 2-digit month
-                    exp_year_match = re.search(r'\b20\d{2}\b', m)
+                    exp_year_match = re.search(r'\b(?:20)?\d{2}\b', m)
                     exp_year = exp_year_match[0] if exp_year_match else "Year Not Found"
+
                     cvv = re.search(r'\b\d{3}\b', m)[0]  # Assuming 3-digit CVV
 
                     BIN = card_number[:6]
